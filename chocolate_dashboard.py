@@ -146,7 +146,6 @@ pio.templates["choc_theme"] = go.layout.Template(
         colorway=PALETTE,
     )
 )
-# Aplica o tema globalmente para não precisarmos repetir nos gráficos
 pio.templates.default = "choc_theme"
 
 # ── Sidebar — Filtros ───────────────────────────────────────────────────────
@@ -222,7 +221,7 @@ with col1:
             color=rating_counts.values,
             colorscale=[[0, "#3E1C00"], [0.5, "#A0522D"], [1, "#C8860A"]],
             showscale=False,
-            line=dict(color="#F5DEB3", width=0.5), # Sem dash='solid'
+            line=dict(color="#F5DEB3", width=0.5),
         ),
         text=rating_counts.values,
         textposition="outside",
@@ -320,7 +319,7 @@ with col3:
             color=top_fab["mean"],
             colorscale=[[0, "#3E1C00"], [0.5, "#A0522D"], [1, "#C8860A"]],
             showscale=False,
-            line=dict(color="#F5DEB3", width=0.5), # Sem dash='solid'
+            line=dict(color="#F5DEB3", width=0.5),
         ),
         text=[f"{v:.2f} ({c} barras)" for v, c in zip(top_fab["mean"], top_fab["count"])],
         textposition="outside",
@@ -353,7 +352,7 @@ with col4:
             color=top_ori["mean"],
             colorscale=[[0, "#2C1503"], [0.5, "#7B4F2E"], [1, "#DEB887"]],
             showscale=False,
-            line=dict(color="#F5DEB3", width=0.5), # Sem dash='solid'
+            line=dict(color="#F5DEB3", width=0.5),
         ),
         text=[f"{v:.2f} ({c} barras)" for v, c in zip(top_ori["mean"], top_ori["count"])],
         textposition="outside",
@@ -555,8 +554,10 @@ def train_svm(df_source):
     df_ml["qualidade"] = df_ml["rating"].apply(classify)
 
     features = ["cocoa_percent", "num_ingredients", "year_reviewed", "country_encoded"]
-    X = df_ml[features].values
-    y = df_ml["qualidade"].values
+    
+    # CORREÇÃO CRÍTICA AQUI: Forçando a conversão de PyArrow para NumPy puro
+    X = np.asarray(df_ml[features], dtype=float)
+    y = np.asarray(df_ml["qualidade"], dtype=str)
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.25, random_state=42, stratify=y
@@ -666,8 +667,11 @@ def get_permutation_importance(_model, _scaler, df_source):
         else: return "🏆 Excelente"
     df_ml2["qualidade"] = df_ml2["rating"].apply(classify)
     feats = ["cocoa_percent", "num_ingredients", "year_reviewed", "country_enc"]
-    X2 = _scaler.transform(df_ml2[feats].values)
-    y2 = df_ml2["qualidade"].values
+    
+    # CORREÇÃO CRÍTICA AQUI TAMBÉM: Forçando a conversão de PyArrow para NumPy puro
+    X2 = _scaler.transform(np.asarray(df_ml2[feats], dtype=float))
+    y2 = np.asarray(df_ml2["qualidade"], dtype=str)
+    
     result = permutation_importance(_model, X2, y2, n_repeats=10, random_state=42, n_jobs=-1)
     return result.importances_mean
 
