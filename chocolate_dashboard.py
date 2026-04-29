@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import plotly.io as pio
 from plotly.subplots import make_subplots
 
 # ── Configuração da página ──────────────────────────────────────────────────
@@ -103,6 +104,22 @@ hr { border-color: rgba(200, 134, 10, 0.25); }
 </style>
 """, unsafe_allow_html=True)
 
+# ── Configurações de tema Plotly (Nativo) ──────────────────────────────────
+pio.templates["choc_theme"] = go.layout.Template(
+    layout=go.Layout(
+        paper_bgcolor="#1A0A00",
+        plot_bgcolor="#2C1503",
+        font=dict(color="#F5DEB3", family="Lato"),
+        title=dict(font=dict(color="#C8860A", family="Playfair Display", size=18)),
+        legend=dict(bgcolor="rgba(44, 21, 3, 0.5)", bordercolor="rgba(200, 134, 10, 0.25)"),
+        xaxis=dict(gridcolor="rgba(200, 134, 10, 0.15)", linecolor="rgba(200, 134, 10, 0.25)", tickcolor="#DEB887"),
+        yaxis=dict(gridcolor="rgba(200, 134, 10, 0.15)", linecolor="rgba(200, 134, 10, 0.25)", tickcolor="#DEB887"),
+        colorway=PALETTE,
+    )
+)
+# Aplica o nosso tema de chocolate por padrão a todos os gráficos!
+pio.templates.default = "choc_theme"
+
 # ── Carregamento dos dados ──────────────────────────────────────────────────
 @st.cache_data
 def load_data():
@@ -115,20 +132,6 @@ def load_data():
     return df.dropna(subset=["rating", "cocoa_percent"])
 
 df = load_data()
-
-# ── Configurações de tema Plotly ────────────────────────────────────────────
-PLOTLY_TEMPLATE = dict(
-    layout=dict(
-        paper_bgcolor="#1A0A00",
-        plot_bgcolor="#2C1503",
-        font=dict(color="#F5DEB3", family="Lato"),
-        title=dict(font=dict(color="#C8860A", family="Playfair Display", size=18)),
-        legend=dict(bgcolor="rgba(44, 21, 3, 0.5)", bordercolor="rgba(200, 134, 10, 0.25)"),
-        xaxis=dict(gridcolor="rgba(200, 134, 10, 0.15)", linecolor="rgba(200, 134, 10, 0.25)", tickcolor="#DEB887"),
-        yaxis=dict(gridcolor="rgba(200, 134, 10, 0.15)", linecolor="rgba(200, 134, 10, 0.25)", tickcolor="#DEB887"),
-        colorway=PALETTE,
-    )
-)
 
 # ── Sidebar — Filtros ───────────────────────────────────────────────────────
 with st.sidebar:
@@ -211,7 +214,6 @@ with col1:
         hovertemplate="Rating: %{x}<br>Quantidade: %{y}<extra></extra>",
     ))
     fig1.update_layout(
-        **PLOTLY_TEMPLATE["layout"],
         title="Quantidade de barras por rating",
         xaxis_title="Rating",
         yaxis_title="Nº de barras",
@@ -236,7 +238,6 @@ with col2:
         hovertemplate="%{label}: %{value} barras (%{percent})<extra></extra>",
     ))
     fig2.update_layout(
-        **PLOTLY_TEMPLATE["layout"],
         title="Faixas de rating",
         height=360,
         showlegend=False,
@@ -271,7 +272,6 @@ fig3.add_trace(go.Scatter(
     name="Tendência média",
 ))
 fig3.update_layout(
-    **PLOTLY_TEMPLATE["layout"],
     title="Relação entre teor de cacau e qualidade percebida",
     xaxis_title="% de Cacau",
     yaxis_title="Rating",
@@ -312,7 +312,6 @@ with col3:
         hovertemplate="%{y}<br>Rating médio: %{x:.2f}<extra></extra>",
     ))
     fig4.update_layout(
-        **PLOTLY_TEMPLATE["layout"],
         title="Top 15 países fabricantes<br>(por rating médio, mín. 5 barras)",
         xaxis_title="Rating médio",
         yaxis_title="",
@@ -346,7 +345,6 @@ with col4:
         hovertemplate="%{y}<br>Rating médio: %{x:.2f}<extra></extra>",
     ))
     fig5.update_layout(
-        **PLOTLY_TEMPLATE["layout"],
         title="Top 15 origens do grão de cacau<br>(rating médio, mín. 8 barras)",
         xaxis_title="Rating médio",
         yaxis_title="",
@@ -392,10 +390,9 @@ fig6.add_trace(go.Bar(
     hovertemplate="Ano: %{x}<br>Avaliações: %{y}<extra></extra>",
 ))
 fig6.update_layout(
-    **PLOTLY_TEMPLATE["layout"],
     title="Rating médio e volume de avaliações por ano",
     xaxis_title="Ano",
-    yaxis=dict(title="Rating", gridcolor="rgba(200, 134, 10, 0.15)"),
+    yaxis=dict(title="Rating"),
     yaxis2=dict(title="Nº de avaliações", overlaying="y", side="right", showgrid=False),
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     height=380,
@@ -439,10 +436,9 @@ with col5:
         hovertemplate="Ingredientes: %{x}<br>Rating médio: %{y:.2f}<extra></extra>",
     ))
     fig7.update_layout(
-        **PLOTLY_TEMPLATE["layout"],
         title="Nº de ingredientes × rating",
         xaxis_title="Nº de ingredientes",
-        yaxis=dict(title="Nº de barras", gridcolor="rgba(200, 134, 10, 0.15)"),
+        yaxis=dict(title="Nº de barras"),
         yaxis2=dict(title="Rating médio", overlaying="y", side="right", showgrid=False,
                     range=[2.5, 4.5]),
         height=380,
@@ -471,7 +467,6 @@ with col6:
             hovertemplate=f"{faixa}<br>Rating: %{{y}}<extra></extra>",
         ))
     fig8.update_layout(
-        **PLOTLY_TEMPLATE["layout"],
         title="Distribuição do rating por faixa de % cacau",
         yaxis_title="Rating",
         xaxis_title="% de Cacau",
