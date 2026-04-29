@@ -1,13 +1,3 @@
-"""
-🍫 Chocolate Bars Dashboard — Streamlit App
-Para rodar no Google Colab:
-  1. Execute a célula de instalação no topo do notebook (ver instruções abaixo)
-  2. Cole este script em um arquivo .py e rode com `!streamlit run chocolate_dashboard.py &`
-  3. Use o link de tunnel do ngrok para acessar o app
-
-Instruções completas de Colab estão no arquivo README_COLAB.txt
-"""
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -60,7 +50,7 @@ h1, h2, h3 {
 
 .stMetric {
     background: linear-gradient(135deg, #2C1503, #3E1C00);
-    border: 1px solid #C8860A44;
+    border: 1px solid rgba(200, 134, 10, 0.25);
     border-radius: 12px;
     padding: 16px !important;
 }
@@ -70,7 +60,7 @@ h1, h2, h3 {
 
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg, #2C1503 0%, #1A0A00 100%);
-    border-right: 1px solid #C8860A44;
+    border-right: 1px solid rgba(200, 134, 10, 0.25);
 }
 
 section[data-testid="stSidebar"] * { color: #F5DEB3 !important; }
@@ -78,11 +68,11 @@ section[data-testid="stSidebar"] * { color: #F5DEB3 !important; }
 .stSelectbox > div > div,
 .stMultiSelect > div > div {
     background-color: #3E1C00;
-    border-color: #C8860A66;
+    border-color: rgba(200, 134, 10, 0.4);
     color: #F5DEB3;
 }
 
-hr { border-color: #C8860A44; }
+hr { border-color: rgba(200, 134, 10, 0.25); }
 .stPlotlyChart { border-radius: 12px; overflow: hidden; }
 
 .hero-title {
@@ -133,9 +123,9 @@ PLOTLY_TEMPLATE = dict(
         plot_bgcolor="#2C1503",
         font=dict(color="#F5DEB3", family="Lato"),
         title=dict(font=dict(color="#C8860A", family="Playfair Display", size=18)),
-        legend=dict(bgcolor="#2C150388", bordercolor="#C8860A44"),
-        xaxis=dict(gridcolor="#C8860A22", linecolor="#C8860A44", tickcolor="#DEB887"),
-        yaxis=dict(gridcolor="#C8860A22", linecolor="#C8860A44", tickcolor="#DEB887"),
+        legend=dict(bgcolor="rgba(44, 21, 3, 0.5)", bordercolor="rgba(200, 134, 10, 0.25)"),
+        xaxis=dict(gridcolor="rgba(200, 134, 10, 0.15)", linecolor="rgba(200, 134, 10, 0.25)", tickcolor="#DEB887"),
+        yaxis=dict(gridcolor="rgba(200, 134, 10, 0.15)", linecolor="rgba(200, 134, 10, 0.25)", tickcolor="#DEB887"),
         colorway=PALETTE,
     )
 )
@@ -213,7 +203,7 @@ with col1:
             color=rating_counts.values,
             colorscale=[[0, "#3E1C00"], [0.5, "#A0522D"], [1, "#C8860A"]],
             showscale=False,
-            line=dict(color="#F5DEB322", width=0.5),
+            line=dict(color="rgba(245, 222, 179, 0.15)", width=0.5),
         ),
         text=rating_counts.values,
         textposition="outside",
@@ -270,7 +260,6 @@ fig3 = px.scatter(
     opacity=0.75,
     size_max=8,
 )
-# linha de tendência manual via lowess-like média por bin
 bins_x = pd.cut(dff["cocoa_percent"], bins=20)
 trend = dff.groupby(bins_x, observed=False)["rating"].mean().reset_index()
 trend["mid"] = trend["cocoa_percent"].apply(lambda x: x.mid if hasattr(x, "mid") else None)
@@ -315,7 +304,7 @@ with col3:
             color=top_fab["mean"],
             colorscale=[[0, "#3E1C00"], [0.5, "#A0522D"], [1, "#C8860A"]],
             showscale=False,
-            line=dict(color="#F5DEB322", width=0.5),
+            line=dict(color="rgba(245, 222, 179, 0.15)", width=0.5),
         ),
         text=[f"{v:.2f} ({c} barras)" for v, c in zip(top_fab["mean"], top_fab["count"])],
         textposition="outside",
@@ -349,7 +338,7 @@ with col4:
             color=top_ori["mean"],
             colorscale=[[0, "#2C1503"], [0.5, "#7B4F2E"], [1, "#DEB887"]],
             showscale=False,
-            line=dict(color="#F5DEB322", width=0.5),
+            line=dict(color="rgba(245, 222, 179, 0.15)", width=0.5),
         ),
         text=[f"{v:.2f} ({c} barras)" for v, c in zip(top_ori["mean"], top_ori["count"])],
         textposition="outside",
@@ -399,14 +388,14 @@ fig6.add_trace(go.Bar(
     x=ano_stats["year_reviewed"], y=ano_stats["count"],
     name="Nº de avaliações",
     yaxis="y2",
-    marker=dict(color="#5C3317", opacity=0.4),
+    marker=dict(color="rgba(92, 51, 23, 0.4)"),
     hovertemplate="Ano: %{x}<br>Avaliações: %{y}<extra></extra>",
 ))
 fig6.update_layout(
     **PLOTLY_TEMPLATE["layout"],
     title="Rating médio e volume de avaliações por ano",
     xaxis_title="Ano",
-    yaxis=dict(title="Rating", gridcolor="#C8860A22"),
+    yaxis=dict(title="Rating", gridcolor="rgba(200, 134, 10, 0.15)"),
     yaxis2=dict(title="Nº de avaliações", overlaying="y", side="right", showgrid=False),
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     height=380,
@@ -433,7 +422,7 @@ with col5:
         x=ingr_stats["num_ingredients"].astype(int).astype(str),
         y=ingr_stats["count"],
         name="Nº de barras",
-        marker=dict(color="#5C3317", opacity=0.7),
+        marker=dict(color="rgba(92, 51, 23, 0.7)"),
         hovertemplate="Ingredientes: %{x}<br>Barras: %{y}<extra></extra>",
     ))
     fig7.add_trace(go.Scatter(
@@ -453,7 +442,7 @@ with col5:
         **PLOTLY_TEMPLATE["layout"],
         title="Nº de ingredientes × rating",
         xaxis_title="Nº de ingredientes",
-        yaxis=dict(title="Nº de barras", gridcolor="#C8860A22"),
+        yaxis=dict(title="Nº de barras", gridcolor="rgba(200, 134, 10, 0.15)"),
         yaxis2=dict(title="Rating médio", overlaying="y", side="right", showgrid=False,
                     range=[2.5, 4.5]),
         height=380,
@@ -461,7 +450,6 @@ with col5:
     st.plotly_chart(fig7, use_container_width=True)
 
 with col6:
-    # Box plot: rating por faixa de cacau
     dff3 = dff.copy()
     dff3["faixa_cacau"] = pd.cut(
         dff3["cocoa_percent"],
