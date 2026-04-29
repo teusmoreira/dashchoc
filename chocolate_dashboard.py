@@ -133,9 +133,9 @@ def load_data():
 
 df = load_data()
 
-# ── Configurações de tema Plotly ────────────────────────────────────────────
-PLOTLY_TEMPLATE = dict(
-    layout=dict(
+# ── Configurações de tema Plotly (NATIVO E CORRIGIDO) ───────────────────────
+pio.templates["choc_theme"] = go.layout.Template(
+    layout=go.Layout(
         paper_bgcolor="#1A0A00",
         plot_bgcolor="#2C1503",
         font=dict(color="#F5DEB3", family="Lato"),
@@ -146,6 +146,8 @@ PLOTLY_TEMPLATE = dict(
         colorway=PALETTE,
     )
 )
+# Aplica o tema globalmente para não precisarmos repetir nos gráficos
+pio.templates.default = "choc_theme"
 
 # ── Sidebar — Filtros ───────────────────────────────────────────────────────
 with st.sidebar:
@@ -220,7 +222,7 @@ with col1:
             color=rating_counts.values,
             colorscale=[[0, "#3E1C00"], [0.5, "#A0522D"], [1, "#C8860A"]],
             showscale=False,
-            line=dict(color="#F5DEB3", width=0.5), # BUG CORRIGIDO AQUI
+            line=dict(color="#F5DEB3", width=0.5), # Sem dash='solid'
         ),
         text=rating_counts.values,
         textposition="outside",
@@ -228,7 +230,6 @@ with col1:
         hovertemplate="Rating: %{x}<br>Quantidade: %{y}<extra></extra>",
     ))
     fig1.update_layout(
-        **PLOTLY_TEMPLATE["layout"],
         title="Quantidade de barras por rating",
         xaxis_title="Rating",
         yaxis_title="Nº de barras",
@@ -253,7 +254,6 @@ with col2:
         hovertemplate="%{label}: %{value} barras (%{percent})<extra></extra>",
     ))
     fig2.update_layout(
-        **PLOTLY_TEMPLATE["layout"],
         title="Faixas de rating",
         height=360,
         showlegend=False,
@@ -277,7 +277,6 @@ fig3 = px.scatter(
     opacity=0.75,
     size_max=8,
 )
-# linha de tendência manual via lowess-like média por bin
 bins_x = pd.cut(dff["cocoa_percent"], bins=20)
 trend = dff.groupby(bins_x, observed=False)["rating"].mean().reset_index()
 trend["mid"] = trend["cocoa_percent"].apply(lambda x: x.mid if hasattr(x, "mid") else None)
@@ -289,7 +288,6 @@ fig3.add_trace(go.Scatter(
     name="Tendência média",
 ))
 fig3.update_layout(
-    **PLOTLY_TEMPLATE["layout"],
     title="Relação entre teor de cacau e qualidade percebida",
     xaxis_title="% de Cacau",
     yaxis_title="Rating",
@@ -322,7 +320,7 @@ with col3:
             color=top_fab["mean"],
             colorscale=[[0, "#3E1C00"], [0.5, "#A0522D"], [1, "#C8860A"]],
             showscale=False,
-            line=dict(color="#F5DEB3", width=0.5), # BUG CORRIGIDO AQUI
+            line=dict(color="#F5DEB3", width=0.5), # Sem dash='solid'
         ),
         text=[f"{v:.2f} ({c} barras)" for v, c in zip(top_fab["mean"], top_fab["count"])],
         textposition="outside",
@@ -330,7 +328,6 @@ with col3:
         hovertemplate="%{y}<br>Rating médio: %{x:.2f}<extra></extra>",
     ))
     fig4.update_layout(
-        **PLOTLY_TEMPLATE["layout"],
         title="Top 15 países fabricantes<br>(por rating médio, mín. 5 barras)",
         xaxis_title="Rating médio",
         yaxis_title="",
@@ -356,7 +353,7 @@ with col4:
             color=top_ori["mean"],
             colorscale=[[0, "#2C1503"], [0.5, "#7B4F2E"], [1, "#DEB887"]],
             showscale=False,
-            line=dict(color="#F5DEB3", width=0.5), # BUG CORRIGIDO AQUI
+            line=dict(color="#F5DEB3", width=0.5), # Sem dash='solid'
         ),
         text=[f"{v:.2f} ({c} barras)" for v, c in zip(top_ori["mean"], top_ori["count"])],
         textposition="outside",
@@ -364,7 +361,6 @@ with col4:
         hovertemplate="%{y}<br>Rating médio: %{x:.2f}<extra></extra>",
     ))
     fig5.update_layout(
-        **PLOTLY_TEMPLATE["layout"],
         title="Top 15 origens do grão de cacau<br>(rating médio, mín. 8 barras)",
         xaxis_title="Rating médio",
         yaxis_title="",
@@ -410,7 +406,6 @@ fig6.add_trace(go.Bar(
     hovertemplate="Ano: %{x}<br>Avaliações: %{y}<extra></extra>",
 ))
 fig6.update_layout(
-    **PLOTLY_TEMPLATE["layout"],
     title="Rating médio e volume de avaliações por ano",
     xaxis_title="Ano",
     yaxis=dict(title="Rating", gridcolor="rgba(200,134,10,0.13)"),
@@ -457,7 +452,6 @@ with col5:
         hovertemplate="Ingredientes: %{x}<br>Rating médio: %{y:.2f}<extra></extra>",
     ))
     fig7.update_layout(
-        **PLOTLY_TEMPLATE["layout"],
         title="Nº de ingredientes × rating",
         xaxis_title="Nº de ingredientes",
         yaxis=dict(title="Nº de barras", gridcolor="rgba(200,134,10,0.13)"),
@@ -468,7 +462,6 @@ with col5:
     st.plotly_chart(fig7, use_container_width=True)
 
 with col6:
-    # Box plot: rating por faixa de cacau
     dff3 = dff.copy()
     dff3["faixa_cacau"] = pd.cut(
         dff3["cocoa_percent"],
@@ -490,7 +483,6 @@ with col6:
             hovertemplate=f"{faixa}<br>Rating: %{{y}}<extra></extra>",
         ))
     fig8.update_layout(
-        **PLOTLY_TEMPLATE["layout"],
         title="Distribuição do rating por faixa de % cacau",
         yaxis_title="Rating",
         xaxis_title="% de Cacau",
@@ -545,10 +537,8 @@ teor de cacau, número de ingredientes e ano de avaliação.
 def train_svm(df_source):
     df_ml = df_source.copy()
 
-    # Features numéricas disponíveis
     df_ml["num_ingredients"] = df_ml["num_ingredients"].fillna(df_ml["num_ingredients"].median())
 
-    # Codifica país de fabricação (top 10 + "Other")
     top10 = df_ml["company_location"].value_counts().head(10).index
     df_ml["country_encoded"] = df_ml["company_location"].apply(
         lambda x: x if x in top10 else "Other"
@@ -556,7 +546,6 @@ def train_svm(df_source):
     le = LabelEncoder()
     df_ml["country_encoded"] = le.fit_transform(df_ml["country_encoded"])
 
-    # Target: 4 classes de qualidade
     def classify(r):
         if r <= 2.5:   return "🔴 Ruim"
         elif r <= 3.0: return "🟡 Regular"
@@ -625,7 +614,6 @@ with col_cm:
     st.plotly_chart(fig_cm, use_container_width=True)
 
 with col_rep:
-    # Relatório de classificação como barras agrupadas
     labels_rep = [k for k in report if k not in ("accuracy", "macro avg", "weighted avg")]
     precision_vals = [report[k]["precision"] for k in labels_rep]
     recall_vals    = [report[k]["recall"]    for k in labels_rep]
@@ -733,7 +721,6 @@ with st.container():
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # Encode país
     top10_c = df["company_location"].value_counts().head(10).index
     country_mapped = pred_country if pred_country in top10_c else "Other"
     try:
@@ -746,7 +733,6 @@ with st.container():
     pred_proba = model.predict_proba(X_pred)[0]
     pred_classes = model.classes_
 
-    # Exibe resultado
     color_map = {
         "🔴 Ruim": "#E53935",
         "🟡 Regular": "#FDD835",
@@ -762,7 +748,6 @@ with st.container():
         unsafe_allow_html=True,
     )
 
-    # Probabilidades por classe como gauge
     prob_order = ["🔴 Ruim", "🟡 Regular", "🟢 Bom", "🏆 Excelente"]
     prob_vals  = [pred_proba[list(pred_classes).index(c)] if c in pred_classes else 0 for c in prob_order]
     colors_prob = [color_map[c] for c in prob_order]
